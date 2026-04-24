@@ -9,6 +9,8 @@ const OCM_ENDPOINT = 'https://api.openchargemap.io/v3/poi/';
 
 // Cache stations for re-rendering on language change
 let cachedStations = [];
+// Map of stationId -> Leaflet marker for real-time status updates
+const stationMarkers = {};
 
 // ── localStorage Report Store ─────────────────────────────────────────────────
 const LS_REPORTS  = 'chargeReports';   // { stationId: { broken, works } }
@@ -192,10 +194,73 @@ window.addEventListener('DOMContentLoaded', () => {
     reported[stationId] = type;
     _lsSave(LS_REPORTED, reported);
 
-    // Rebuild the widget in-place with updated counts and button states
+    // Update the UI
     const widget = document.getElementById(`rw-${stationId}`);
     if (widget) {
+      // Safely grab the popup container BEFORE we replace the widget
+      const popupEl = widget.closest('.ocm-premium-popup') || document.querySelector('.ocm-premium-popup');
+      
+      // 1. Update the report widget itself (counters)
       widget.outerHTML = buildReportWidget(stationId, stationReports[stationId], true);
+      
+      // Determine the base OCM status ID (fallback to 0 if not found)
+      let statusId = 0;
+      let badge = null;
+      if (popupEl) {
+        badge = popupEl.querySelector('.status-badge');
+        if (badge && badge.hasAttribute('data-status-id')) {
+          statusId = parseInt(badge.getAttribute('data-status-id')) || 0;
+        }
+      }
+      
+      // Calculate the new effective status
+      const newEff = effectiveStatusClass(statusId, stationId);
+      
+      // 2. Update the status badge in the popup header if it exists
+      if (badge) {
+        if (newEff === 'operational') {
+          badge.className = 'status-badge online';
+          badge.textContent = i18n.t('status.operational');
+        } else if (newEff === 'broken') {
+          badge.className = 'status-badge broken';
+          badge.textContent = i18n.t('status.broken');
+        } else {
+          badge.className = 'status-badge offline';
+          badge.textContent = i18n.t('status.unknown');
+        }
+      }
+
+      // 3. Update the marker icon on the map immediately
+      const marker = stationMarkers[stationId];
+      if (marker) {
+        const newIcon = L.divIcon({
+          className: 'ocm-marker-container',
+          html: `<div class="ocm-marker-pin ${newEff}"><div class="ocm-bolt-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></div></div>`,
+          iconSize: [32, 44],
+          iconAnchor: [16, 44],
+          popupAnchor: [0, -40]
+        });
+        marker.setIcon(newIcon);
+      }
+
+      // 4. Update Car Mode list if applicable
+      const carStation = carModeStations.find(c => String(c.station.ID) === stationId);
+      if (carStation) {
+        carStation.effStatus = newEff;
+        if (newEff === 'operational') {
+          carStation.statusBadgeClass = 'online';
+          carStation.statusLabel = i18n.t('status.operational');
+        } else if (newEff === 'broken') {
+          carStation.statusBadgeClass = 'broken';
+          carStation.statusLabel = i18n.t('status.broken');
+        } else {
+          carStation.statusBadgeClass = 'offline';
+          carStation.statusLabel = i18n.t('status.unknown');
+        }
+        if (document.body.classList.contains('car-mode-active')) {
+          renderCarModeList();
+        }
+      }
     }
   };
 
@@ -205,10 +270,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (r) {
       const bCount = r.broken?.count ?? 0;
       const wCount = r.works?.count ?? 0;
-      // Community override: if broken reports outweigh works by ≥2, show red
-      if (bCount - wCount >= 2) return 'broken';
-      // If works dominates, show green regardless of OCM status
-      if (wCount > bCount) return 'operational';
+      // Community override: if broken reports outweigh works, show red
+      if (bCount > wCount) return 'broken';
+      // If works dominates or ties, show green regardless of OCM status
+      if (wCount >= bCount && wCount > 0) return 'operational';
     }
     // Fall back to OCM status
     if (statusId === 50 || statusId === 10) return 'operational';
@@ -219,6 +284,12 @@ window.addEventListener('DOMContentLoaded', () => {
   // ── Render charging stations ──────────────────────────────────────────────
   function renderChargingStations(stations, buffer = null) {
     markers.clearLayers();
+    // Clear the marker map on every re-render
+    for (const id in stationMarkers) delete stationMarkers[id];
+    
+    // Clear the car mode stations array to prevent duplicates on re-render
+    carModeStations = [];
+    
     let nearbyCount = 0;
     
     stations.forEach(station => {
@@ -305,7 +376,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <div class="ocm-premium-popup">
             <div class="popup-header">
               <h3>${AddressInfo.Title || i18n.t('labels.chargingStation')}</h3>
-              <span class="status-badge ${statusBadgeClass}">${statusLabel}</span>
+              <span class="status-badge ${statusBadgeClass}" data-status-id="${statusId}">${statusLabel}</span>
             </div>
             <div class="popup-body">
               <p class="address"><i class="loc-icon">📍</i> ${AddressInfo.AddressLine1 || i18n.t('labels.na')}</p>
@@ -355,6 +426,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
 
         markers.addLayer(marker);
+        stationMarkers[stationId] = marker;
       }
     });
     
@@ -522,7 +594,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Initialize with current language
   i18n.setLanguage(i18n.currentLanguage);
-  renderCityMarkers();
 
   // Automatically try to locate user on start
   locateUser();
@@ -645,6 +716,16 @@ window.addEventListener('DOMContentLoaded', () => {
   endInput.addEventListener('input', () => {
     clearTimeout(endTimeout);
     endTimeout = setTimeout(() => handleSearch(endInput, endResults, setEndPoint), 300);
+  });
+
+  // Hide dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!startInput.contains(e.target) && !startResults.contains(e.target)) {
+      startResults.style.display = 'none';
+    }
+    if (!endInput.contains(e.target) && !endResults.contains(e.target)) {
+      endResults.style.display = 'none';
+    }
   });
 
   // Calculate Route
