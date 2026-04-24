@@ -20,6 +20,7 @@ Ce projet a été réalisé dans le cadre d'un test technique, en utilisant excl
 
 ### 3. Mode Conduite (UX Conducteur)
 - **Interface Haute Performance** : Design sombre à fort contraste (OLED-friendly) avec de larges zones tactiles.
+- **Mode Paysage Dédié** : Bouton permettant de basculer en plein écran et de verrouiller l'orientation en mode paysage (Screen Orientation API) pour simuler un vrai tableau de bord de navigation.
 - **Métriques Avancées** :
     - Calcul de la **distance réelle le long du trajet** (pas à vol d'oiseau) pour chaque borne.
     - Estimation du temps d'arrivée (ETA).
@@ -30,9 +31,9 @@ Ce projet a été réalisé dans le cadre d'un test technique, en utilisant excl
 - **Persistance Locale** : Les signalements sont sauvegardés dans le `localStorage` du navigateur.
 - **Intelligence Collective** : Le statut visuel de la borne change si les rapports de la communauté indiquent une panne (même si l'API source dit le contraire).
 
-### 5. Internationalisation (i18n)
+### 5. Internationalisation (i18n) & Design Responsive
 - Support complet du **Français**, **Anglais** et **Arabe**.
-- Gestion native du mode **RTL** (Right-To-Left) pour l'interface en Arabe.
+- Gestion native du mode **RTL** (Right-To-Left) pour l'interface en Arabe, incluant des correctifs avancés de mise en page sur mobile pour éviter les chevauchements et offrir une UX fluide sur petit écran.
 
 ---
 
