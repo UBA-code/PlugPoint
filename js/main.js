@@ -608,6 +608,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const carModeBtn = document.getElementById('car-mode-btn');
   const carModePanel = document.getElementById('car-mode-panel');
   const exitCarModeBtn = document.getElementById('exit-car-mode');
+  const landscapeModeBtn = document.getElementById('landscape-mode-btn');
   const carStationsList = document.getElementById('car-stations-list');
   const closePanelBtn = document.getElementById('close-panel');
   const calculateBtn = document.getElementById('calculate-route');
@@ -888,7 +889,28 @@ window.addEventListener('DOMContentLoaded', () => {
   exitCarModeBtn.addEventListener('click', () => {
     document.body.classList.remove('car-mode-active');
     carModePanel.classList.add('hide');
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    if (screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
   });
+
+  if (landscapeModeBtn) {
+    landscapeModeBtn.addEventListener('click', async () => {
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        }
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape');
+        }
+      } catch (err) {
+        console.warn('Landscape orientation lock failed:', err);
+      }
+    });
+  }
 
   console.log('Charge.ma optimized with Marker Clustering and I18n!');
 });

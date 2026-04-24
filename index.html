@@ -79,7 +79,10 @@
       <div id="car-mode-panel" class="car-mode-panel hide">
         <div class="car-header">
           <h2 data-i18n="carMode">🚘 Car Mode</h2>
-          <button id="exit-car-mode" class="car-exit-btn">✕ <span data-i18n="exitCarMode">Exit</span></button>
+          <div style="display: flex; gap: 10px;">
+            <button id="landscape-mode-btn" class="car-exit-btn" style="background: var(--secondary);"><span data-i18n="landscapeMode">Landscape</span></button>
+            <button id="exit-car-mode" class="car-exit-btn">✕ <span data-i18n="exitCarMode">Exit</span></button>
+          </div>
         </div>
         <div id="car-stations-list" class="car-stations-list"></div>
       </div>

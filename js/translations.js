@@ -55,7 +55,8 @@ window.translations = {
       works: "Works",
       reportBroken: "Report Broken",
       itWorks: "It Works!"
-    }
+    },
+    landscapeMode: "Landscape"
   },
   fr: {
     title: "Charge.<span>Ma</span>",
@@ -113,7 +114,8 @@ window.translations = {
       works: "Fonctionne",
       reportBroken: "Signaler en panne",
       itWorks: "Ça marche !"
-    }
+    },
+    landscapeMode: "Paysage"
   },
   ar: {
     title: "شارج.<span>ما</span>",
@@ -171,6 +173,7 @@ window.translations = {
       works: "يعمل",
       reportBroken: "الإبلاغ عن عطل",
       itWorks: "إنه يعمل!"
-    }
+    },
+    landscapeMode: "وضع أفقي"
   }
 };
