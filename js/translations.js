@@ -56,7 +56,15 @@ window.translations = {
       reportBroken: "Report Broken",
       itWorks: "It Works!"
     },
-    landscapeMode: "Landscape"
+    landscapeMode: "Landscape",
+    carModel: "Car Model",
+    batteryLevel: "Battery Level (%)",
+    standardEV: "Standard EV (400 km)",
+    cityEV: "City EV (250 km)",
+    longRangeEV: "Long Range EV (550 km)",
+    reachable: "Reachable",
+    unreachable: "Out of Reach",
+    searchCarPlaceholder: "Type your EV model..."
   },
   fr: {
     title: "Charge.<span>Ma</span>",
@@ -115,7 +123,15 @@ window.translations = {
       reportBroken: "Signaler en panne",
       itWorks: "Ça marche !"
     },
-    landscapeMode: "Paysage"
+    landscapeMode: "Paysage",
+    carModel: "Modèle de voiture",
+    batteryLevel: "Niveau de batterie (%)",
+    standardEV: "VE Standard (400 km)",
+    cityEV: "VE Citadine (250 km)",
+    longRangeEV: "VE Longue Autonomie (550 km)",
+    reachable: "Accessible",
+    unreachable: "Hors de portée",
+    searchCarPlaceholder: "Tapez le modèle de votre VE..."
   },
   ar: {
     title: "شارج.<span>ما</span>",
@@ -174,6 +190,14 @@ window.translations = {
       reportBroken: "الإبلاغ عن عطل",
       itWorks: "إنه يعمل!"
     },
-    landscapeMode: "وضع أفقي"
+    landscapeMode: "وضع أفقي",
+    carModel: "موديل السيارة",
+    batteryLevel: "مستوى البطارية (%)",
+    standardEV: "سيارة كهربائية عادية (400 كم)",
+    cityEV: "سيارة مدينة (250 كم)",
+    longRangeEV: "سيارة طويلة المدى (550 كم)",
+    reachable: "يمكن الوصول إليها",
+    unreachable: "خارج النطاق",
+    searchCarPlaceholder: "اكتب موديل سيارتك الكهربائية..."
   }
 };

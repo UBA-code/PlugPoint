@@ -7,6 +7,10 @@ const initialZoom = 6;
 // OpenChargeMap API Configuration
 const OCM_ENDPOINT = 'https://api.openchargemap.io/v3/poi/';
 
+// Chargetrip API Configuration
+const CHARGETRIP_CLIENT_ID = '69ef7731d518517546a32a2b';
+const CHARGETRIP_APP_ID = '69ef7731d518517546a32a2d';
+
 // Cache stations for re-rendering on language change
 let cachedStations = [];
 // Map of stationId -> Leaflet marker for real-time status updates
@@ -92,6 +96,7 @@ let currentRouteDuration = 0;
 let carModeStations = [];
 let isPickingStart = false;
 let isPickingEnd = false;
+let selectedCarRange = 400; // Default fallback range
 
 // Wait for DOM and Leaflet to be ready
 window.addEventListener('DOMContentLoaded', () => {
@@ -596,7 +601,7 @@ window.addEventListener('DOMContentLoaded', () => {
   i18n.setLanguage(i18n.currentLanguage);
 
   // Automatically try to locate user on start
-  locateUser();
+  // locateUser(); // Disabled: User must click "Locate Me" to get location
 
   // Load charging stations (reports already loaded from localStorage synchronously)
   loadChargingStations();
@@ -620,6 +625,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const pickStartBtn = document.getElementById('pick-start');
   const pickEndBtn = document.getElementById('pick-end');
   const routeInfo = document.getElementById('route-info');
+  const carModelSearch = document.getElementById('car-model-search');
+  const carModelResults = document.getElementById('car-model-results');
+  const batteryRange = document.getElementById('battery-range');
+  const batteryDisplay = document.getElementById('battery-display');
 
   // Toggle Panel
   toggleRouteBtn.addEventListener('click', () => routePanel.classList.toggle('hide'));
@@ -831,6 +840,10 @@ window.addEventListener('DOMContentLoaded', () => {
     // Sort by order of appearance
     carModeStations.sort((a, b) => a.distAlongRoute - b.distAlongRoute);
 
+    const maxRange = selectedCarRange;
+    const batteryPct = parseInt(batteryRange.value) || 100;
+    const currentReachableDistance = (batteryPct / 100) * maxRange;
+
     carModeStations.forEach((item, index) => {
       const { AddressInfo } = item.station;
       const distStr = item.distAlongRoute.toFixed(1) + ' km';
@@ -842,13 +855,24 @@ window.addEventListener('DOMContentLoaded', () => {
         etaStr = etaMins + ' ' + i18n.t('timeMins');
       }
 
+      const isReachable = item.distAlongRoute <= currentReachableDistance;
+      const reachClass = isReachable ? 'online' : 'broken';
+      const reachLabel = isReachable ? i18n.t('reachable') : i18n.t('unreachable');
+
       const div = document.createElement('div');
       div.className = 'car-card';
+      if (!isReachable) {
+        div.style.opacity = '0.7';
+        div.style.border = '1px solid var(--primary)';
+      }
       
       div.innerHTML = `
         <div class="car-card-header">
           <h3>${(index + 1).toString().padStart(2, '0')} - ${AddressInfo.Title || i18n.t('labels.chargingStation')}</h3>
-          <span class="status-badge ${item.statusBadgeClass}">${item.statusLabel}</span>
+          <div style="display:flex; gap:5px; align-items:center;">
+            <span class="status-badge ${item.statusBadgeClass}">${item.statusLabel}</span>
+            <span class="status-badge ${reachClass}">${reachLabel}</span>
+          </div>
         </div>
         <div class="car-card-metrics">
           <div class="car-metric">
@@ -885,6 +909,96 @@ window.addEventListener('DOMContentLoaded', () => {
     carModePanel.classList.remove('hide');
     renderCarModeList();
   });
+
+  // Chargetrip Autocomplete Logic
+  let carSearchTimeout;
+  if (carModelSearch && carModelResults) {
+    carModelSearch.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      clearTimeout(carSearchTimeout);
+      
+      if (query.length < 2) {
+        carModelResults.style.display = 'none';
+        return;
+      }
+      
+      carSearchTimeout = setTimeout(async () => {
+        try {
+          const response = await fetch('https://api.chargetrip.io/graphql', {
+            method: 'POST',
+            headers: {
+              'x-client-id': CHARGETRIP_CLIENT_ID,
+              'x-app-id': CHARGETRIP_APP_ID,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              query: `
+                query vehicleList($search: String) {
+                  vehicleList(search: $search, size: 10) {
+                    id
+                    naming { make model version }
+                    range { chargetrip_range { best } }
+                    media { image { thumbnail_url } }
+                  }
+                }
+              `,
+              variables: { search: query }
+            })
+          });
+          
+          const result = await response.json();
+          if (result.data && result.data.vehicleList) {
+            carModelResults.innerHTML = '';
+            if (result.data.vehicleList.length > 0) {
+              carModelResults.style.display = 'block';
+              result.data.vehicleList.forEach(vehicle => {
+                const range = vehicle.range?.chargetrip_range?.best || 400;
+                const name = `${vehicle.naming.make} ${vehicle.naming.model} ${vehicle.naming.version || ''}`.trim();
+                const imageUrl = vehicle.media?.image?.thumbnail_url || '';
+                
+                const div = L.DomUtil.create('div', 'search-result-item', carModelResults);
+                div.style.display = 'flex';
+                div.style.alignItems = 'center';
+                
+                const imageHtml = imageUrl 
+                  ? `<img src="${imageUrl}" style="width: 60px; height: 40px; object-fit: contain; margin-right: 12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">` 
+                  : `<div style="width: 60px; height: 40px; margin-right: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:rgba(255,255,255,0.3);">No Img</div>`;
+                  
+                div.innerHTML = `${imageHtml}<div><strong style="font-size: 0.95rem;">${vehicle.naming.make} ${vehicle.naming.model}</strong><br><small style="color: #cbd5e1; font-size: 0.8rem;">${vehicle.naming.version || ''} • ${range} km</small></div>`;
+                
+                div.addEventListener('click', () => {
+                  carModelSearch.value = name;
+                  selectedCarRange = range;
+                  carModelResults.style.display = 'none';
+                  if (document.body.classList.contains('car-mode-active')) {
+                    renderCarModeList();
+                  }
+                });
+              });
+            } else {
+              carModelResults.style.display = 'none';
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching vehicles:', err);
+        }
+      }, 400);
+    });
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+      if (!carModelSearch.contains(e.target) && !carModelResults.contains(e.target)) {
+        carModelResults.style.display = 'none';
+      }
+    });
+  }
+
+  if (batteryRange && batteryDisplay) {
+    batteryRange.addEventListener('input', (e) => {
+      batteryDisplay.textContent = e.target.value + '%';
+      renderCarModeList();
+    });
+  }
 
   exitCarModeBtn.addEventListener('click', () => {
     document.body.classList.remove('car-mode-active');
