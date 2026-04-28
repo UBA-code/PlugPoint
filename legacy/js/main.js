@@ -1,4 +1,4 @@
-// main.js - Charge.ma (OpenChargeMap Edition)
+// main.js - PlugPoint (OpenChargeMap Edition)
 
 // Morocco coordinates [latitude, longitude]
 const moroccoCenter = [31.7917, -7.0926];
@@ -1026,7 +1026,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  console.log('Charge.ma optimized with Marker Clustering and I18n!');
+  console.log('PlugPoint optimized with Marker Clustering and I18n!');
 });
 
 

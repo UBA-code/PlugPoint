@@ -1,6 +1,6 @@
-window.translations = {
+export const translations = {
   en: {
-    title: "Charge.<span>Ma</span>",
+    title: "PlugPoint",
     tagline: "Interactive Map",
     locateMe: "Find my location",
     youAreHere: "You are here",
@@ -67,7 +67,7 @@ window.translations = {
     searchCarPlaceholder: "Type your EV model..."
   },
   fr: {
-    title: "Charge.<span>Ma</span>",
+    title: "PlugPoint",
     tagline: "Carte Interactive",
     locateMe: "Ma position",
     youAreHere: "Vous êtes ici",
@@ -134,7 +134,7 @@ window.translations = {
     searchCarPlaceholder: "Tapez le modèle de votre VE..."
   },
   ar: {
-    title: "شارج.<span>ما</span>",
+    title: "PlugPoint",
     tagline: "خريطة تفاعلية",
     locateMe: "تحديد موقعي",
     youAreHere: "أنت هنا",
