@@ -431,7 +431,7 @@ export default function MapComponent() {
 
       {/* Custom zoom + locate + reset controls */}
       <div 
-        className="absolute bottom-6 left-4 z-[1000] flex flex-col gap-2 pointer-events-auto"
+        className="absolute top-32 right-4 md:top-auto md:bottom-6 md:left-4 md:right-auto z-[900] flex flex-col gap-2 pointer-events-auto"
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={(e) => e.stopPropagation()}
       >

@@ -106,12 +106,13 @@ export default function RoutePanel() {
   };
 
   return (
-    <div className={`absolute top-24 ${language === 'ar' ? 'right-4' : 'left-4'} w-80 z-[1000]
-      bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl flex flex-col`}>
+    <div className={`absolute top-24 left-1/2 -translate-x-1/2 lg:translate-x-0 w-[calc(100%-2rem)] lg:w-80 z-[1300]
+      ${language === 'ar' ? 'lg:right-4 lg:left-auto' : 'lg:left-4 lg:right-auto'}
+      bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl flex flex-col max-h-[70vh] lg:max-h-none overflow-y-auto`}>
       <div className="flex justify-between items-center p-4 border-b border-slate-100">
         <h2 className="text-lg font-black text-slate-800 flex items-center gap-2"><Navigation size={20} className="text-blue-500" /> {t.routePlanner}</h2>
-        <button onClick={() => setRoutePanelOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-          <X size={20} />
+        <button onClick={() => setRoutePanelOpen(false)} className="p-2 -mr-2 text-slate-400 hover:text-slate-600 transition-colors">
+          <X size={24} />
         </button>
       </div>
 
@@ -119,7 +120,7 @@ export default function RoutePanel() {
         <div className="space-y-1">
           <label className="text-[10px] text-slate-400 uppercase tracking-widest font-black">{t.startPoint}</label>
           <div className="relative">
-            <div className="flex bg-slate-50 rounded-xl border border-slate-200 p-1">
+            <div className="flex bg-slate-50 rounded-xl border border-slate-200 p-1.5 lg:p-1">
               <input 
                 type="text" 
                 value={startName} 
@@ -159,7 +160,7 @@ export default function RoutePanel() {
         <div className="space-y-1">
           <label className="text-[10px] text-slate-400 uppercase tracking-widest font-black">{t.destination}</label>
           <div className="relative">
-            <div className="flex bg-slate-50 rounded-xl border border-slate-200 p-1">
+            <div className="flex bg-slate-50 rounded-xl border border-slate-200 p-1.5 lg:p-1">
               <input 
                 type="text" 
                 value={endName} 
