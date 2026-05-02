@@ -28,10 +28,14 @@ export default function MapComponent() {
   const isPickingEnd = useStore((state) => state.isPickingEnd);
   const setStartPoint = useStore((state) => state.setStartPoint);
   const setEndPoint = useStore((state) => state.setEndPoint);
+  const isClearMode = useStore((state) => state.isClearMode);
+  const setIsClearMode = useStore((state) => state.setIsClearMode);
 
   // Refs to avoid stale closures in map event handlers
   const stateRef = useRef({});
-  stateRef.current = { isPickingStart, isPickingEnd, setStartPoint, setEndPoint, setSelectedStation, language };
+  useEffect(() => {
+    stateRef.current = { isPickingStart, isPickingEnd, setStartPoint, setEndPoint, setSelectedStation, language };
+  });
   const stationsRef = useRef(stations);
   useEffect(() => { stationsRef.current = stations; }, [stations]);
 
@@ -427,15 +431,35 @@ export default function MapComponent() {
 
   return (
     <div className="w-full h-full relative">
+      <style>{`
+        @media (max-height: 600px) {
+          .map-controls-responsive {
+            flex-direction: row !important;
+            align-items: center !important;
+            top: auto !important;
+            bottom: 1rem !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+          }
+          .zoom-wrapper {
+            flex-direction: row !important;
+          }
+          .zoom-wrapper button:first-child {
+            border-bottom: none !important;
+            border-right: 1px solid #f1f5f9 !important;
+          }
+        }
+      `}</style>
       <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
 
       {/* Custom zoom + locate + reset controls */}
       <div 
-        className="absolute top-32 right-4 md:top-auto md:bottom-6 md:left-4 md:right-auto z-[900] flex flex-col gap-2 pointer-events-auto"
+        className="map-controls-responsive absolute top-32 right-4 md:top-auto md:bottom-6 md:left-4 md:right-auto z-[900] flex flex-col gap-2 pointer-events-auto"
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={(e) => e.stopPropagation()}
       >
-        <div className="flex flex-col bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <div className="zoom-wrapper flex flex-col bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
           <button onClick={(e) => { e.stopPropagation(); handleZoomIn(); }} className="p-3 hover:bg-slate-50 transition-colors text-slate-700 border-b border-slate-100" title="Zoom In">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -461,9 +485,29 @@ export default function MapComponent() {
             <line x1="2" y1="12" x2="6" y2="12" /><line x1="18" y1="12" x2="22" y2="12" />
           </svg>
         </button>
+
+        <button onClick={(e) => { e.stopPropagation(); setIsClearMode(!isClearMode); }} className={`p-3 rounded-xl shadow-lg border transition-colors ${isClearMode ? 'bg-[#3b82f6] text-white border-[#3b82f6]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`} title="Toggle Clear Mode">
+          {isClearMode ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+              <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+              <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+              <line x1="2" y1="2" x2="22" y2="22" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          )}
+        </button>
       </div>
 
-      <StationDetail />
+      <div className={`transition-opacity duration-300 pointer-events-none ${isClearMode ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={isClearMode ? 'pointer-events-none' : 'pointer-events-auto'}>
+          <StationDetail />
+        </div>
+      </div>
     </div>
   );
 }

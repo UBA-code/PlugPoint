@@ -31,6 +31,10 @@ export const useStore = create((set, get) => ({
   isPickingEnd: false,
   routeData: null, // { geojson, distance, duration, buffer }
   
+  // Clear Mode
+  isClearMode: false,
+  setIsClearMode: (val) => set({ isClearMode: val }),
+
   setStartPoint: (point, name) => set({ startPoint: point, startName: name, isPickingStart: false }),
   setEndPoint: (point, name) => set({ endPoint: point, endName: name, isPickingEnd: false }),
   setStartName: (name) => set({ startName: name }),

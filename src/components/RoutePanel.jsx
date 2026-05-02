@@ -46,6 +46,7 @@ export default function RoutePanel() {
 
   useEffect(() => {
     if (startName.length < 3) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStartResults([]);
       setIsSearchingStart(false);
       return;
@@ -145,7 +146,8 @@ export default function RoutePanel() {
                     className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 border-b border-slate-50 last:border-0"
                     onClick={() => {
                       setStartPoint({ lat: parseFloat(res.lat), lng: parseFloat(res.lon) }, res.display_name.split(',')[0]);
-                      setStartResults([]);
+                      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStartResults([]);
                       setIsSearchingStart(false);
                     }}
                   >
