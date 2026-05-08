@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import Header from './components/Header';
 import RoutePanel from './components/RoutePanel';
 import CarModePanel from './components/CarModePanel';
 import MapComponent from './components/MapComponent';
 import { useStore } from './store/useStore';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   const language = useStore((state) => state.language);
@@ -49,6 +50,7 @@ function App() {
         <div className={isClearMode ? 'pointer-events-none' : 'pointer-events-auto'}><CarModePanel /></div>
       </div>
       <MapComponent />
+      <Analytics />
     </div>
   );
 }
